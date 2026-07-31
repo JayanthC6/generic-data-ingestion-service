@@ -1,0 +1,20 @@
+name: jsonplaceholder
+
+type: rest
+
+endpoint: https://jsonplaceholder.typicode.com/posts
+
+method: GET
+
+timeout: 30
+
+headers: {}
+
+params: {}
+
+retry:
+  attempts: 3
+  backoff: 2
+
+storage:
+  destination: postgres
