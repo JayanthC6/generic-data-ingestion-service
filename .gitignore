@@ -1,20 +1,18 @@
-# Python
+# Virtual Environment
 .venv/
+
+# Python
 __pycache__/
 *.pyc
+.pytest_cache/
 
 # Environment
 .env
-.env.docker
 
 # IDE
 .vscode/
-
-# Git
-.git
-
-# Docker
-*.log
+.idea/
 
 # OS
 .DS_Store
+Thumbs.db

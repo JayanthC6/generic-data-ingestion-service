@@ -1,84 +1,100 @@
+<div align="center">
+
 # Generic Data Ingestion Service
 
-> An AI-native, extensible data ingestion platform built with **FastAPI**, **PostgreSQL**, **Docker**, and **SQLAlchemy**. The service provides a connector-based architecture to ingest data from heterogeneous REST APIs, normalize responses, and persist them into PostgreSQL through a scalable and production-inspired pipeline.
+### AI-Native | Configuration-Driven | Extensible Data Ingestion Platform
+
+A production-inspired data ingestion framework built with **FastAPI**, **PostgreSQL**, **SQLAlchemy**, and **Docker**. The platform provides a scalable connector-based architecture for ingesting heterogeneous REST APIs, normalizing their responses, and persisting them into PostgreSQL through a unified ingestion pipeline.
+
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-REST-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
+![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-red)
+![Pytest](https://img.shields.io/badge/Tests-Pytest-success)
+
+</div>
 
 ---
 
-## Overview
+# Problem Statement
 
-Modern applications frequently integrate with multiple third-party APIs, each exposing different response formats, authentication mechanisms, and schemas. Writing custom ingestion logic for every API quickly becomes difficult to maintain.
+Organizations integrate with numerous third-party APIs, each exposing different authentication mechanisms, response formats, pagination strategies, and schemas.
 
-This project addresses that challenge by introducing a **plugin-based connector architecture**, allowing new data sources to be integrated with minimal code changes while maintaining a clean separation of concerns.
+Building a custom ingestion pipeline for every API quickly becomes difficult to maintain and scale.
 
-The current implementation supports:
+This project addresses that challenge by providing a **generic, connector-based ingestion framework** where data sources are isolated behind reusable connectors while the ingestion pipeline remains independent of API-specific implementation details.
 
-- JSONPlaceholder API
-- RandomUser API
-
-and is designed to easily support additional REST APIs in the future.
+To further improve extensibility, the project introduces **configuration-driven source definitions** using YAML, allowing API configurations to evolve without modifying core business logic.
 
 ---
 
-## Features
+# Key Features
 
-- REST API built with FastAPI
+- Generic Connector Architecture
+- Factory Design Pattern
+- Configuration-driven source definitions (YAML)
+- FastAPI REST API
 - Asynchronous data ingestion using HTTPX
-- Connector-based architecture
-- Factory Pattern for connector selection
-- Generic ingestion pipeline
 - Automatic response normalization
 - PostgreSQL persistence using JSONB
 - SQLAlchemy ORM
-- Retry mechanism with exponential backoff
-- Dockerized application
-- Docker Compose support
-- Swagger/OpenAPI documentation
-- Unit tests using Pytest
+- Retry mechanism for transient failures
+- Docker & Docker Compose support
+- Swagger / OpenAPI documentation
+- Unit testing with Pytest
 - Environment-based configuration
 
 ---
 
-## Architecture
+# Architecture
 
-```text
+```
                     Client
 
                        │
                        ▼
 
-                 FastAPI Router
+                FastAPI Router
+
                        │
                        ▼
 
-              Ingestion Service
+               Ingestion Service
+
                        │
                        ▼
 
-              Connector Factory
+               Connector Factory
+
          ┌─────────────┴─────────────┐
          │                           │
          ▼                           ▼
 
  JSONPlaceholder Connector    RandomUser Connector
+
          │                           │
-         ▼                           ▼
 
-       Fetch API Data (HTTPX Async)
+         └─────────────┬─────────────┘
+                       │
+                       ▼
 
-                    │
-                    ▼
+          Async HTTP Data Retrieval
 
-              Normalize Response
+                       │
+                       ▼
 
-                    │
-                    ▼
+             Response Normalization
 
-          Retry on Transient Failure
+                       │
+                       ▼
 
-                    │
-                    ▼
+              Retry on Failure
 
-           PostgreSQL Storage (JSONB)
+                       │
+                       ▼
+
+            PostgreSQL (JSONB Storage)
 ```
 
 ---
@@ -87,43 +103,51 @@ and is designed to easily support additional REST APIs in the future.
 
 ```
 generic-data-ingestion-service
+
 │
+
 ├── app
+
 │   ├── api
-│   │     └── routes.py
-│   │
+
+│   ├── config
+
 │   ├── connectors
-│   │     ├── base.py
-│   │     ├── factory.py
-│   │     ├── jsonplaceholder.py
-│   │     └── randomuser.py
-│   │
+
 │   ├── database
-│   │     ├── db.py
-│   │     └── models.py
-│   │
+
 │   ├── schemas
-│   │     └── ingestion.py
-│   │
+
 │   ├── services
-│   │     └── ingestion_service.py
-│   │
+
 │   ├── storage
-│   │     ├── base_storage.py
-│   │     └── postgres_storage.py
-│   │
+
 │   ├── utils
-│   │     └── retry.py
-│   │
+
 │   └── main.py
+
 │
+
+├── configs
+
+│   ├── jsonplaceholder.yaml
+
+│   └── randomuser.yaml
+
+│
+
 ├── tests
-│     └── test_api.py
+
 │
+
 ├── Dockerfile
+
 ├── docker-compose.yml
+
 ├── requirements.txt
+
 ├── README.md
+
 └── .env.example
 ```
 
@@ -132,15 +156,15 @@ generic-data-ingestion-service
 # Technology Stack
 
 | Technology | Purpose |
-|------------|---------|
+|------------|----------|
 | Python 3.12 | Programming Language |
 | FastAPI | REST Framework |
 | HTTPX | Async HTTP Client |
-| SQLAlchemy | ORM |
 | PostgreSQL | Database |
-| JSONB | Flexible Payload Storage |
+| SQLAlchemy | ORM |
 | Docker | Containerization |
-| Docker Compose | Multi-container Orchestration |
+| Docker Compose | Multi-container Deployment |
+| PyYAML | Configuration Management |
 | Pytest | Testing |
 
 ---
@@ -149,78 +173,78 @@ generic-data-ingestion-service
 
 ## Connector Pattern
 
-Every external API implements its own connector responsible for:
+Each external API encapsulates its own retrieval and normalization logic.
 
-- Fetching data
-- Normalizing responses
-
-This isolates source-specific logic from the ingestion pipeline.
+This isolates API-specific implementation details from the ingestion pipeline and allows additional connectors to be introduced with minimal changes.
 
 ---
 
 ## Factory Pattern
 
-The application never directly instantiates connectors.
+The ingestion service never directly creates connectors.
 
-Instead, it delegates connector creation to a factory.
+Instead, connector creation is delegated to a factory.
 
 Benefits:
 
 - Open for extension
 - Closed for modification
-- Easy onboarding of new APIs
+- Centralized connector registration
+- Simplified onboarding of new APIs
 
-Adding another connector requires:
+---
 
-1. Create connector
-2. Register in factory
+## Configuration-Driven Sources
 
-No business logic changes are required.
+Instead of hardcoding API metadata inside the application, connector definitions are externalized into YAML configuration files.
+
+Current implementation includes:
+
+- JSONPlaceholder
+- RandomUser
+
+Future APIs can be introduced through configuration with minimal application changes.
 
 ---
 
 ## JSONB Storage
 
-Different APIs return completely different payloads.
+Different APIs expose heterogeneous response schemas.
 
-Instead of creating individual relational schemas, the application stores normalized payloads inside PostgreSQL using JSONB.
+Rather than designing separate relational schemas for every API, normalized payloads are stored using PostgreSQL JSONB.
 
 Benefits:
 
-- Flexible schema
-- Supports heterogeneous APIs
-- Easy querying
-- Future-proof
+- Flexible schema evolution
+- Simplified ingestion
+- Efficient querying
+- Supports heterogeneous data sources
 
 ---
 
-## Async Architecture
+## Async HTTP
 
-External API calls are performed asynchronously using HTTPX.
+External API calls use asynchronous HTTPX clients.
 
 Advantages:
 
 - Better scalability
 - Non-blocking I/O
-- Suitable for concurrent ingestion
+- Improved throughput
 
 ---
 
 ## Retry Mechanism
 
-The ingestion pipeline includes retry support for transient network failures.
+Network failures are inevitable when communicating with external systems.
 
-Features:
-
-- Exponential Backoff
-- Automatic Retry
-- Improved Reliability
+The ingestion pipeline includes automatic retry logic for transient failures to improve resilience.
 
 ---
 
-# Getting Started
+# Running Locally
 
-## Clone Repository
+Clone repository
 
 ```bash
 git clone https://github.com/JayanthC6/generic-data-ingestion-service.git
@@ -228,9 +252,7 @@ git clone https://github.com/JayanthC6/generic-data-ingestion-service.git
 cd generic-data-ingestion-service
 ```
 
----
-
-## Create Virtual Environment
+Create virtual environment
 
 ```bash
 python -m venv .venv
@@ -244,53 +266,33 @@ Windows
 .venv\Scripts\activate
 ```
 
-Linux/macOS
+Linux / macOS
 
 ```bash
 source .venv/bin/activate
 ```
 
----
-
-## Install Dependencies
+Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
-
-## Configure Environment
-
-Create
-
-```
-.env
-```
-
-Example
+Create `.env`
 
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5432/ingestion_db
 ```
 
----
-
-## Run Application
+Run
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Open
-
-```
-http://localhost:8000/docs
-```
-
 ---
 
-# Running with Docker
+# Docker
 
 Build
 
@@ -298,32 +300,16 @@ Build
 docker compose up --build
 ```
 
-Run
+Application
 
-```bash
-docker compose up
 ```
-
-Stop
-
-```bash
-docker compose down
+http://localhost:8000
 ```
-
----
-
-# API Documentation
 
 Swagger
 
 ```
 http://localhost:8000/docs
-```
-
-OpenAPI
-
-```
-http://localhost:8000/openapi.json
 ```
 
 ---
@@ -336,10 +322,6 @@ http://localhost:8000/openapi.json
     {
       "name": "jsonplaceholder",
       "endpoint": "https://jsonplaceholder.typicode.com/posts"
-    },
-    {
-      "name": "randomuser",
-      "endpoint": "https://randomuser.me/api/?results=10"
     }
   ]
 }
@@ -351,24 +333,20 @@ http://localhost:8000/openapi.json
 
 ```json
 {
-  "status": "success",
-  "total_sources": 2,
-  "results": [
-    {
-      "source": "jsonplaceholder",
-      "records_ingested": 100
-    },
-    {
-      "source": "randomuser",
-      "records_ingested": 10
-    }
-  ]
+    "status":"success",
+    "total_sources":1,
+    "results":[
+        {
+            "source":"jsonplaceholder",
+            "records_ingested":100
+        }
+    ]
 }
 ```
 
 ---
 
-# Database
+# Database Schema
 
 Table
 
@@ -378,88 +356,91 @@ ingested_records
 
 Columns
 
-| Column | Type |
-|---------|------|
-| id | Integer |
-| source | String |
-| payload | JSONB |
+| Column | Description |
+|---------|-------------|
+| id | Primary Key |
+| source | Data Source |
+| payload | JSONB Payload |
 | fetched_at | Timestamp |
 
 ---
 
 # Testing
 
-Run all tests
+Run
 
 ```bash
 pytest
 ```
 
-Current status
+Current tests verify
 
-```
-2 tests passed
-```
-
-The test suite validates:
-
-- API availability
+- FastAPI availability
 - OpenAPI endpoint
-- Successful request handling
+- API initialization
 
 ---
 
-# Current Connectors
+# Engineering Trade-offs
 
-| Connector | Status |
-|------------|--------|
-| JSONPlaceholder | Implemented |
-| RandomUser | Implemented |
+During development, several design trade-offs were made intentionally.
 
----
+- The current implementation focuses on REST APIs while keeping the architecture extensible for additional protocols in the future.
+- PostgreSQL JSONB was selected instead of relational modeling to accommodate heterogeneous API payloads without frequent schema changes.
+- Connector configurations were externalized into YAML files to reduce future onboarding effort while preserving flexibility.
+- Retry support was implemented to improve reliability without introducing unnecessary complexity such as distributed queues or circuit breakers.
 
-# Extending the Platform
-
-To add a new API:
-
-1. Create a connector inside `app/connectors`
-2. Implement `fetch_data()`
-3. Implement `normalize()`
-4. Register the connector in `factory.py`
-
-No changes are required in the ingestion service.
+These decisions prioritize maintainability, extensibility, and clarity within the scope of a two-day engineering assignment.
 
 ---
 
 # AI Usage
 
-AI was used as an engineering assistant throughout the development process.
+AI was used as an engineering assistant throughout development.
 
 It assisted with:
 
 - Architecture exploration
-- Design pattern selection
-- Code reviews
+- Design pattern evaluation
 - Documentation improvements
-- Testing strategy
+- Implementation review
+- Debugging support
 
-One incorrect suggestion involved assuming immediate PostgreSQL readiness during Docker startup. Runtime testing exposed the issue, and it was resolved by refining the startup workflow and validating container behavior before application initialization.
+Every AI-generated suggestion was manually validated before integration.
 
-This project was developed by validating AI-generated suggestions through testing rather than accepting them without verification.
+One example where AI required correction involved Docker startup sequencing. An initial implementation assumed PostgreSQL would be immediately available after container startup, resulting in connection failures. Runtime log analysis exposed the issue, and the container startup workflow was refined until consistent initialization was achieved.
+
+This project reflects manually verified engineering decisions rather than blindly generated code.
 
 ---
 
 # Future Improvements
 
+- Generic REST Connector
 - GraphQL Connector
 - OpenAPI-driven Connector Generation
-- Automatic Schema Mapping
 - Incremental Synchronization
-- Kafka Storage
-- S3 Storage
-- Prometheus Metrics
-- Structured JSON Logging
-- LLM-assisted API Discovery
+- Multiple Storage Destinations
+- Structured Logging
+- Metrics Dashboard
+- Authentication Strategies
+- Background Job Scheduling
+
+---
+
+# Why This Project?
+
+This project was developed as a take-home engineering assignment to demonstrate:
+
+- Software architecture fundamentals
+- Extensible connector design
+- Backend engineering practices
+- Asynchronous programming
+- Database integration
+- Containerized deployment
+- Production-oriented thinking
+
+The focus was not only on implementing functionality, but also on making deliberate engineering decisions, documenting trade-offs, and designing a system that can evolve beyond the initial requirements.
 
 ---
 
@@ -467,14 +448,16 @@ This project was developed by validating AI-generated suggestions through testin
 
 **Jayanth C**
 
-MCA Graduate
+Master of Computer Applications (MCA)
+
+Bangalore Institute of Technology
 
 GitHub: https://github.com/JayanthC6
 
-LinkedIn: https://www.linkedin.com/in/jayanthc18/
+LinkedIn: https://linkedin.com/in/jayanthc18
 
 ---
 
-# License
+## Final Thoughts
 
-This project was developed as part of an AI Software Engineering take-home assignment and is intended for educational and evaluation purposes.
+The goal of this project was not simply to ingest data from two APIs, but to design a maintainable ingestion framework that can be extended with additional sources while keeping the ingestion pipeline clean, reusable, and production-oriented.
