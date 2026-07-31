@@ -9,8 +9,8 @@ DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql://postgres:postgres@localhost:5432/ingestion_db"
 )
-
-engine = create_engine(DATABASE_URL)
+print(f"Connected to: {DATABASE_URL}")
+engine = create_engine(DATABASE_URL, echo=True)
 
 SessionLocal = sessionmaker(
     autocommit=False,
