@@ -1,10 +1,12 @@
 import httpx
 
 from app.connectors.base import BaseConnector
+from app.utils.retry import retry
 
 
 class JsonPlaceholderConnector(BaseConnector):
 
+    @retry(max_attempts=3, delay=2)
     async def fetch_data(self):
         async with httpx.AsyncClient() as client:
             response = await client.get(

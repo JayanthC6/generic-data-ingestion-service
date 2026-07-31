@@ -5,7 +5,6 @@ from app.database.db import Base, engine
 
 import app.database.models
 
-print(Base.metadata.tables.keys())
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
